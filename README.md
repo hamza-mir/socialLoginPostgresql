@@ -67,7 +67,7 @@ Before you begin, ensure you have met the following requirements:
 
 Configure your environment variables by creating a `config.env` file in the `backend/config` directory
 
-    ```bash
+```
     PORT=3000
     NODE_ENV=dev
 
@@ -81,7 +81,7 @@ Configure your environment variables by creating a `config.env` file in the `bac
     GOOGLE_CLIENT_SECRET=your_google_client_secret
     FACEBOOK_APP_ID=your_facebook_app_id
     FACEBOOK_APP_SECRET=your_facebook_app_secret
-    ```
+```
 
 ## Usage
 
