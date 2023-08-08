@@ -4,4 +4,4 @@
 .yarn
 .editorconfig
 yarn.lock
-config
+config.env
