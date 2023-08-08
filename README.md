@@ -1,4 +1,4 @@
-# SocialLoginPostgers - Example Website
+# SocialLoginPostgers - IN PROGRESS
 
 SocialLoginPostgers is a demonstration website that showcases the integration of PostgreSQL as a database with Express.js for the backend and React.js for the frontend. The project also utilizes Google and Facebook login APIs to enable seamless user registration and authentication.
 
