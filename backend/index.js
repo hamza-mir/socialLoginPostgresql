@@ -10,12 +10,17 @@ const dotenv = require("dotenv");
 const Pool = require("pg").Pool;
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+	origin: "http://localhost:5173",
+	methods: "GET,POST",
+	allowedHeaders: "Content-Type,Authorization",
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
-if (process.env.NODE_ENV !== "PRODUCTION")
+if (process.env.NODE_ENV !== "prod")
 	require("dotenv").config({ path: "config/config.env" });
 
 dotenv.config({ path: "config/config.env" });
@@ -36,7 +41,6 @@ const createUser = (user) => {
 			"SELECT * FROM users WHERE userId = $1",
 			[user.userid],
 			(error, results) => {
-				console.log(results);
 				if (error || !results.rowCount) {
 					console.error(error);
 					pool.query(
@@ -72,7 +76,7 @@ passport.use(
 			callbackURL: "/auth/google/callback",
 		},
 		(accessToken, refreshToken, profile, done) => {
-			const user = {
+			let user = {
 				userid: profile.id,
 				name: profile.displayName,
 				email: profile.emails[0].value,
@@ -80,7 +84,7 @@ passport.use(
 				refreshtoken: refreshToken,
 				type: "google",
 			};
-			user = createUser(user);
+			createUser(user);
 			const token = jwt.sign(user, jwtSecret);
 			done(null, token);
 		}
@@ -96,7 +100,7 @@ passport.use(
 			profileFields: ["id", "displayName", "email"],
 		},
 		(accessToken, refreshToken, profile, done) => {
-			const user = {
+			let user = {
 				userid: profile.id,
 				name: profile.displayName,
 				email: profile.emails[0].value,
@@ -104,7 +108,7 @@ passport.use(
 				refreshtoken: refreshToken,
 				type: "facebook",
 			};
-			user = createUser(user);
+			createUser(user);
 			const token = jwt.sign(user, jwtSecret);
 			done(null, token);
 		}
@@ -120,15 +124,16 @@ passport.use(
 			callbackURL: "/auth/github/callback",
 		},
 		(accessToken, refreshToken, profile, done) => {
-			const user = {
+			console.log(profile);
+			let user = {
 				userid: profile.id,
-				name: profile.displayName,
+				name: profile.displayName || profile.username,
 				email: profile.emails ? profile.emails[0].value : null,
 				accesstoken: accessToken,
 				refreshtoken: refreshToken,
 				type: "github",
 			};
-			user = createUser(user);
+			createUser(user);
 			const token = jwt.sign(user, jwtSecret);
 			done(null, token);
 		}
@@ -148,8 +153,7 @@ app.get(
 	"/auth/google/callback",
 	passport.authenticate("google", { session: false }),
 	(req, res) => {
-		// Redirect the user with the JWT token as a query parameter
-		res.redirect(`http://localhost:5173/login?token=${req.user}`);
+		res.redirect(`http://localhost:5173/callback?token=${req.user}`);
 	}
 );
 
@@ -162,8 +166,7 @@ app.get(
 	"/auth/facebook/callback",
 	passport.authenticate("facebook", { session: false }),
 	(req, res) => {
-		// Redirect the user with the JWT token as a query parameter
-		res.redirect(`http://localhost:5173/login?token=${req.user}`);
+		res.redirect(`http://localhost:5173/callback?token=${req.user}`);
 	}
 );
 
@@ -173,31 +176,32 @@ app.get(
 	"/auth/github/callback",
 	passport.authenticate("github", { session: false }),
 	(req, res) => {
-		// Redirect the user with the JWT token as a query parameter
-		res.redirect(`http://localhost:5173/login?token=${req.user}`);
+		res.redirect(`http://localhost:5173/callback?token=${req.user}`);
 	}
 );
 
-//Get Users
-app.get("/users", (request, response) => {
-	pool.query("SELECT * FROM users ORDER BY id ASC", (error, results) => {
-		if (error) {
-			throw error;
-		}
-		response.status(200).json(results.rows);
-	});
-});
+//Get User
+app.get("/user", (request, response) => {
+	const token = request.headers.authorization.split(" ")[1];
 
-// Get Single User by Id
-app.get("/users/:id", (request, response) => {
-	const id = parseInt(request.params.id);
+	if (!token) {
+		response.status(401).json({
+			message: "you need to login",
+		});
+	}
 
-	pool.query("SELECT * FROM users WHERE id = $1", [id], (error, results) => {
-		if (error) {
-			throw error;
+	const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+	pool.query(
+		"SELECT * FROM users WHERE userid = $1",
+		[decoded.userid],
+		(error, results) => {
+			if (error) {
+				throw error;
+			}
+			response.status(200).json(results.rows);
 		}
-		response.status(200).json(results.rows);
-	});
+	);
 });
 
 app.listen(process.env.PORT, () => {
