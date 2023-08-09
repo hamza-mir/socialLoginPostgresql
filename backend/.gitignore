@@ -5,3 +5,5 @@
 .editorconfig
 yarn.lock
 config.env
+*.cjs
+*.mjs

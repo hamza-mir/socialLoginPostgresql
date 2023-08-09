@@ -69,7 +69,9 @@ Configure your environment variables by creating a `config.env` file in the `bac
 
 ```
     PORT=3000
-    NODE_ENV=dev
+    NODE_ENV='dev'
+
+    JWT_SECRET=your_jwt_secret
 
     DB_HOST=your_db_host
     DB_DATABASE=your_db_name
@@ -81,6 +83,8 @@ Configure your environment variables by creating a `config.env` file in the `bac
     GOOGLE_CLIENT_SECRET=your_google_client_secret
     FACEBOOK_APP_ID=your_facebook_app_id
     FACEBOOK_APP_SECRET=your_facebook_app_secret
+    GITHUB_CLIENT_ID=your_github_client_id
+    GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
 ## Usage
@@ -93,7 +97,7 @@ Configure your environment variables by creating a `config.env` file in the `bac
 2. Start the frontend development server:
     ```bash
     cd ../frontend
-    npm start
+    yarn dev
     ```
 3. Access the frontend by navigating to `localhost:5173` in your web browser
 
